@@ -220,3 +220,7 @@ __marimo__/
 # JupyterLab artifacts
 .virtual_documents/
 anaconda_projects/
+# Data — never commit datasets (good practice)
+data/
+*.csv
+*.tsv
