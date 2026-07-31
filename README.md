@@ -30,7 +30,7 @@ language.
 | Source | Languages | Reviews used |
 |---|---|---|
 | [MAiDE-up](https://github.com/MihaelaGaman/MAiDE-up) (Ignat et al., 2024) | en, es, it | 1,000 each |
-| [Brazilian Portuguese Hotel Reviews Corpus](https://data.mendeley.com/datasets/2w3kvrg97m/1) (Souza, Oliveira & Moreira, 2018) | pt | 1,000 |
+| [Brazilian Portuguese Hotel Reviews Corpus](https://data.mendeley.com/datasets/2w3kvrg97m/1) (Oliveira, Souza, Moreira & Martins, 2021) | pt | 1,000 |
 
 4,000 reviews in total, balanced by language. Only real (human-written) reviews
 are kept from MAiDE-up; its AI-generated half is discarded. Ratings from both
