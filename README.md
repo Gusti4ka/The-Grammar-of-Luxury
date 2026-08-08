@@ -14,23 +14,24 @@ Its analytic core is an authored taxonomy of 74 terms across five aspects — se
 
 The taxonomy then becomes the labelling instrument. Through distant supervision, the terms that survive the crossing test generate aspect labels at scale — no hand annotation — and sentiment comes from the ratings the guests left themselves.
 
-The model is built in two stages. A frozen LaBSE encoder with two small trained heads establishes the baseline; the encoder is then fine-tuned end-to-end on the same split, and the comparison between the two is the project's central result.
+The model is built in two stages. A frozen LaBSE encoder with two small trained heads establishes the baseline; the encoder is then fine-tuned end-to-end on both tasks, and the comparison between the two stages is the project's central result.
 
 ---
 
 ## Results
 
-
-| | frozen encoder | fine-tuned encoder |
-|---|---|---|
-| aspect macro-F1 (test) | 0.611 | **0.808** |
-| sentiment macro-F1 (test) | 0.851 | not fine-tuned |
+| | frozen encoder | fine-tuned encoder | gain |
+|---|---|---|---|
+| aspect macro-F1 (test) | 0.611 | **0.808** | +0.197 |
+| sentiment macro-F1 (test) | 0.851 | **0.899** | +0.048 |
 
 Baselines, both as macro-F1: 0.429 for aspect (predict every aspect for every review) and roughly 0.43 for sentiment (always predict positive). The sentiment baseline is worth stating carefully — the majority class is 75% of reviews, so always-positive reaches 75% *accuracy* while never identifying a single negative; macro-averaging is what exposes that. The threshold is fixed at 0.5 throughout and never tuned on the test set.
 
-Fine-tuning lifts the aspects the frozen model handled worst — ingredients +0.314, experience +0.262 — and the one it handled best least, service +0.067. That asymmetry is the finding: the vocabulary of *manner* crosses languages in a general multilingual encoder, the vocabulary of *substance* does not, and adapting the encoder is what recovers it.
+The two gains are the finding, and their asymmetry is the point. Within the aspect task, fine-tuning lifts what the frozen model handled worst — ingredients +0.314, experience +0.262 — and what it handled best least, service +0.067. Across tasks, the same pattern holds one level up: sentiment, which the frozen encoder already read well, gained four times less than aspect. Adaptation does not add generic capacity, or everything would gain alike. It repairs specific semantic distinctions, and where few are broken there is little to repair.
 
-These figures are agreement with a distantly-supervised answer key, not accuracy in an absolute sense. §5.4 audits the key itself against eighty reviews annotated by hand: it recovers 93 of the 165 aspect-positives a reader finds, and scores macro-F1 0.421 against that human judgement. The frozen-versus-fine-tuned comparison survives — both were scored against the same key — but neither absolute number should be read as the model's competence.
+The per-language sentiment result was not predicted: the gain falls entirely on English (+0.103) and Spanish (+0.065) and reverses on Italian (−0.050) and Portuguese (−0.046), tracking the number of negative reviews each language brings to the test set — 30, 17, 12, and 3 respectively. Fine-tuning helped where there was minority-class data to learn from.
+
+These figures are agreement with a distantly-supervised answer key, not accuracy in an absolute sense. §5.4 audits the key itself against eighty reviews annotated by hand: it recovers 93 of the 165 aspect-positives a reader finds, and scores macro-F1 0.421 against that human judgement. The frozen-versus-fine-tuned comparisons survive — both sides were scored against the same key — but no absolute number should be read as the model's competence.
 
 ---
 
@@ -62,19 +63,20 @@ The notebook unzips and loads it from there. Every other dataset is fetched by t
 | File | What it is |
 |---|---|
 | `the-grammar-of-luxury.ipynb` | The project. Runs end to end on CPU. |
-| `finetune_labse_grammar_of_luxury.ipynb` | The §7 fine-tune, run on Colab. Committed with its outputs visible, so its results can be read without a GPU. |
+| `finetune_labse_grammar_of_luxury.ipynb` | The §7 aspect fine-tune, run on Colab. |
+| `finetune_labse_sentiment.ipynb` | The same procedure repeated for sentiment — §7's second condition. |
 
-The fine-tuned checkpoint (471M parameters) is not committed. The notebook above records the full training run and its results.
+Both fine-tune notebooks are committed with their outputs visible, so their results can be read without a GPU. The fine-tuned checkpoints (471M parameters each) are not committed.
 
 ---
 
 ## Reproducibility
 
 - Run the notebook top to bottom from a fresh kernel (Kernel → Restart Kernel and Run All Cells). Execution counts should read sequentially; if they don't, the notebook has not been run clean.
-- The 75 expert judgements are recorded verbatim in the notebook as a literal dictionary, so the threshold calibration reproduces without re-consulting a human reader.
+- The 75 expert judgements are recorded verbatim in the notebook as a literal dictionary, so the threshold calibration reproduces without re-consulting a human reader. The 80 hand annotations of §5.4 are recorded the same way.
 - The similarity threshold is defined once, in §2.3, and inherited downstream.
 - `SEED = 42` throughout: the train/validation/test split, the head initialisations, and the error sampling in §5.3 all reproduce exactly.
-- The fine-tune uses the identical split, exported to CSV from this notebook and uploaded to Colab, so the frozen and fine-tuned models are compared on the same rows.
+- Both fine-tunes use the identical split, exported to CSV from this notebook and uploaded to Colab, so all three models are compared on the same rows.
 
 ---
 
@@ -93,9 +95,9 @@ The fine-tuned checkpoint (471M parameters) is not committed. The notebook above
 
 Encoder: `sentence-transformers/LaBSE`, downloaded on first run (~1.8 GB, cached thereafter).
 
-**Colab (GPU) — §7 fine-tune only**
+**Colab (GPU) — the §7 fine-tunes**
 
-The fine-tune was run on Google Colab's default runtime with an NVIDIA T4. Library versions there are managed by Google and are not pinned by this project; the notebook records the device it ran on in its first cell. Unfreezing all 471M parameters of LaBSE requires a GPU, and nothing else in the project does.
+Both were run on Google Colab's default runtime with an NVIDIA T4. Library versions there are managed by Google and are not pinned by this project; the sentiment notebook records the versions it ran under (torch 2.11.0+cu128, transformers 5.13.1) in its first cell. Unfreezing all 471M parameters of LaBSE requires a GPU, and nothing else in the project does.
 
 ---
 
