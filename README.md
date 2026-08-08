@@ -20,14 +20,17 @@ The model is built in two stages. A frozen LaBSE encoder with two small trained 
 
 ## Results
 
+
 | | frozen encoder | fine-tuned encoder |
 |---|---|---|
 | aspect macro-F1 (test) | 0.611 | **0.808** |
 | sentiment macro-F1 (test) | 0.851 | not fine-tuned |
 
-Baselines: always-positive 0.429 for aspect, majority-class 0.75 for sentiment. The threshold is fixed at 0.5 throughout and never tuned on the test set.
+Baselines, both as macro-F1: 0.429 for aspect (predict every aspect for every review) and roughly 0.43 for sentiment (always predict positive). The sentiment baseline is worth stating carefully — the majority class is 75% of reviews, so always-positive reaches 75% *accuracy* while never identifying a single negative; macro-averaging is what exposes that. The threshold is fixed at 0.5 throughout and never tuned on the test set.
 
 Fine-tuning lifts the aspects the frozen model handled worst — ingredients +0.314, experience +0.262 — and the one it handled best least, service +0.067. That asymmetry is the finding: the vocabulary of *manner* crosses languages in a general multilingual encoder, the vocabulary of *substance* does not, and adapting the encoder is what recovers it.
+
+These figures are agreement with a distantly-supervised answer key, not accuracy in an absolute sense. §5.4 audits the key itself against eighty reviews annotated by hand: it recovers 93 of the 165 aspect-positives a reader finds, and scores macro-F1 0.421 against that human judgement. The frozen-versus-fine-tuned comparison survives — both were scored against the same key — but neither absolute number should be read as the model's competence.
 
 ---
 
